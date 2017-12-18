@@ -31,7 +31,8 @@
             [schema.core :as s]
             [toucan
              [db :as db]
-             [hydrate :refer [hydrate]]])
+             [hydrate :refer [hydrate]]]
+            [clojure.java.io :as io])
   (:import metabase.models.database.DatabaseInstance))
 
 (def DBEngineString
@@ -268,13 +269,14 @@
                                           :table_id        [:in (db/select-field :id Table, :db_id id)]
                                           :visibility_type [:not-in ["sensitive" "retired"]])
                                         (hydrate :table)))]
-    (for [{:keys [id display_name table base_type special_type]} fields]
-      {:id           id
-       :name         display_name
-       :base_type    base_type
-       :special_type special_type
-       :table_name   (:display_name table)
-       :schema       (:schema table)})))
+    (api/piped-json-stream
+     (for [{:keys [id display_name table base_type special_type]} fields]
+       {:id           id
+        :name         display_name
+        :base_type    base_type
+        :special_type special_type
+        :table_name   (:display_name table)
+        :schema       (:schema table)}))))
 
 
 ;;; ----------------------------------------- GET /api/database/:id/idfields -----------------------------------------
